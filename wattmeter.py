@@ -1,29 +1,34 @@
 import psutil
 import time
 
+
 found = False
 startTime = 0.0
 endTime = 0.0
+runTime = 0.0
 
 # Program to monitor
-program = ""
+program = "AcroRd32.exe"
 
 def measureWatts():
     return
 
-while found == False:
-    start = input("Scan for program?: y/n ")
-    if start == "y":
-        if program in (p.name() for p in psutil.process_iter()):
-            startTime = time.time()
-            found = True
-            print("Program is running")
-        else:
-            print("Program is not running")
-    else:
-        exit()
+start = input("Scan for program?: y/n ")
+if start == "y":
+    print("Scanning...")
+    while found == False:
+            if program in (p.name() for p in psutil.process_iter()):
+                startTime = time.time()
+                found = True
+                print("Program found!")
+            else:
+                print("Still scanning...")
+            time.sleep(1)
+else:
+    exit()
 
 while found == True:
+    # Exit when program has stopped running
     if program not in (p.name() for p in psutil.process_iter()):
         endTime = time.time()
         found = False
@@ -33,5 +38,7 @@ while found == True:
         measureWatts()
         time.sleep(1)
 
-print("Program has run for " + str((endTime - startTime)) + " seconds")
+runTime = endTime - startTime
+
+print("Program has run for " + str(runTime) + " seconds")
 print("Power consumed during runtime: ")
