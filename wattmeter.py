@@ -5,21 +5,21 @@ import asyncio
 import kasa
 from dotenv import load_dotenv
 
-def measureWatts(plug):
-    plug.update()
+async def measureWatts(plug):
+    await plug.update()
     emeter = plug.emeter_realtime()
     # Power is in watts
     power = emeter["power"]
     return power
 
-def main():
+async def main():
     load_dotenv()
     
     # Try to connect to Kasa smart plug
     try:
         deviceIP = os.getenv("deviceIP")
         plug = kasa.SmartPlug(deviceIP)
-        if plug.is_on:
+        if plug.is_on == True:
             print("Smart plug found!")
     except:
         print("Smart plug not found!")
@@ -65,4 +65,4 @@ def main():
     print("Average power consumed during runtime: " + totalConsumption + " watts")
 
 if __name__== "__main__":
-  main()
+  asyncio.run(main())
