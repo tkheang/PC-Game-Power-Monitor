@@ -29,6 +29,7 @@ def main():
     program = "AcroRd32.exe"
     found = False
 
+    # Detect if program is running
     if input("Scan for program?: y/n ") == "y":
         print("Scanning...")
         while found == False:
@@ -42,8 +43,8 @@ def main():
     else:
         exit()
 
+    # Exit when program has stopped running
     while found == True:
-        # Exit when program has stopped running
         if program not in (p.name() for p in psutil.process_iter()):
             endTime = time.time()
             found = False
@@ -56,6 +57,7 @@ def main():
             print("Current power consumption: " + currentPower + " watts")
             time.sleep(1)
 
+    # Calculate total power consumption
     totalConsumption = totalConsumption / count
     runTime = endTime - startTime
 
