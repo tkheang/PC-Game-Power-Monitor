@@ -1,68 +1,71 @@
-import psutil
+import win32ui
 import time
 import os
 import asyncio
-import kasa
+
+from kasa import SmartPlug
 from dotenv import load_dotenv
 
-async def measureWatts(plug):
+def WindowExists(name):
+    try:
+        win32ui.FindWindow(None, name)
+    except win32ui.error:
+        return False
+    else:
+        return True
+
+async def measurePower(plug):
     await plug.update()
-    emeter = plug.emeter_realtime()
+    pstat = plug.emeter_realtime
     # Power is in watts
-    power = emeter["power"]
-    return power
+    return pstat["power_mw"] / 1000
 
 async def main():
-    load_dotenv()
-    
     # Try to connect to Kasa smart plug
+    load_dotenv()
+    plug = SmartPlug(os.getenv("deviceIP"))
     try:
-        deviceIP = os.getenv("deviceIP")
-        plug = kasa.SmartPlug(deviceIP)
-        if plug.is_on == True:
+        await plug.update()
+        if plug.is_on:
             print("Smart plug found!")
     except:
-        print("Smart plug not found!")
+        print("Smart plug not found! Plug into wall or check .env settings")
         exit()
-
-    # Program to monitor
-    program = "AcroRd32.exe"
+    
+    # Detect program to monitor
+    program = input("Program to monitor: ")
     found = False
-
-    # Detect if program is running
-    if input("Scan for program?: y/n ") == "y":
-        print("Scanning...")
-        while found == False:
-                if program in (p.name() for p in psutil.process_iter()):
-                    startTime = time.time()
-                    found = True
-                    print("Program found!")
-                else:
-                    print("Still scanning...")
-                    time.sleep(1)
-    else:
-        exit()
-
-    # Exit when program has stopped running
-    while found == True:
-        if program not in (p.name() for p in psutil.process_iter()):
-            endTime = time.time()
-            found = False
-            print("Program has stopped running")
+    totalPower = 0.0
+    count = 0
+    while found == False:
+        if WindowExists(program):
+            found = True
+            startTime = time.time()
+            print(program + " is running. Tracking power usage...")
         else:
-            print("Program is still running...")
-            currentPower = measureWatts(plug)
-            totalConsumption += currentPower
+            print("Program " + program + " not found! Exiting...")
+            exit()
+
+    # Accumulate total power every second
+    while found == True:
+        if WindowExists(program) == False:
+            found = False
+            endTime = time.time()
+            print(program + " has stopped running")
+        else:
+            totalPower += await measurePower(plug)
             count += 1
-            print("Current power consumption: " + currentPower + " watts")
             time.sleep(1)
-
-    # Calculate total power consumption
-    totalConsumption = totalConsumption / count
+    
+    # Calculate power used
     runTime = endTime - startTime
+    avgPower = totalPower / count
+    totalEnergy = avgPower / 3600000
+    print(program + " ran for " + str(runTime) + " seconds")
+    print("Average power consumed: " + str(avgPower) + " W")
+    print("Total energy consumed: " + str(totalEnergy) + " kWh")
+    print("Total energy cost: $" + str(totalEnergy * 0.22))
+    print("Total energy cost per month: $" + str(totalEnergy * 0.22 * 30))
 
-    print("Program has run for " + str(runTime) + " seconds")
-    print("Average power consumed during runtime: " + totalConsumption + " watts")
-
-if __name__== "__main__":
-  asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
