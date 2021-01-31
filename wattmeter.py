@@ -2,7 +2,6 @@ import win32ui
 import time
 import os
 import asyncio
-import PySimpleGUI as sg
 
 from numpy import arange
 from datetime import timedelta
