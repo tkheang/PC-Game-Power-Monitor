@@ -1,5 +1,5 @@
 # PC Game Power Monitor
-A simple program that tracks the energy usage and cost per gaming session.  
+A simple program that tracks the energy usage and cost per gaming session. Developed as a submission for HackUCI 2021.  
 
 **Required Hardware**  
 TP-Link Kasa smart plug with energy monitoring (must be compatible with python-kasa). I used the [KP-115](https://www.kasasmart.com/us/products/smart-plugs/kasa-smart-plug-slim-energy-monitoring-kp115).  
